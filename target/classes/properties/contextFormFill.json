@@ -1,0 +1,47 @@
+[
+  {
+    "title": "@@org.joget.ai.form_fill_element.contextAiformfill.edit@@",
+    "properties": [
+      {
+        "name": "id",
+        "label": "@@org.joget.ai.form_fill_element.contextAiformfill.id@@",
+        "type": "TextField",
+        "required": "false",
+        "regex_validation": "^[a-zA-Z0-9_]+$",
+        "validation_message": "@@org.joget.ai.form_fill_element.contextAiformfill.invalidId@@"
+      },
+      {
+        "name": "label",
+        "label": "@@org.joget.ai.form_fill_element.contextAiformfill.label@@",
+        "type": "TextField",
+        "required": "false",
+        "value": "@@org.joget.ai.form_fill_element.contextAiformfill.defaultValue@@"
+      }
+    ]
+  },
+
+  {
+    "title": "@@org.joget.ai.form_fill_element.contextAiformfill.config@@",
+    "properties": [
+      {
+        "name": "model",
+        "label": "@@org.joget.ai.form_fill_element.contextAiformfill.model@@",
+        "type": "textfield",
+        "required": "true",
+        "value": "@@org.joget.ai.form_fill_element.contextAiformfill.model.defaultValue@@"
+      },
+      {
+        "name": "proxyDomain",
+        "label": "@@org.joget.ai.form_fill_element.contextAiformfill.proxyDomain@@",
+        "type": "textfield",
+        "value": "@@org.joget.ai.form_fill_element.contextAiformfill.proxyDomain.defaultValueOpenAI@@"
+      },
+      {
+        "name": "apiKey",
+        "label": "@@org.joget.ai.form_fill_element.contextAiformfill.apiKey@@",
+        "type": "Password",
+        "required": "true"
+      }
+    ]
+  }
+]
