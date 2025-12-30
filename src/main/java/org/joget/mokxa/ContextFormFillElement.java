@@ -231,7 +231,7 @@ public class ContextFormFillElement extends Element implements FormBuilderPalett
    public String returnGptPrompt(String formElements) {
       LocalDate currentDate = LocalDate.now();
       LogUtil.info(getClass().getName(),formElements);
-      return "Based on the provided content, please help and complete this JSON provided in the same format.\nReturn only a JSON with unescaped characters so that it can be easily parsed.\nToday's date is " + currentDate + "\n\nThe Form JSON you have to fill is:\n" + formElements + "\n\nIMPORTANT: For any DatePicker fields, ensure dates are formatted as MM/dd/yyyy (e.g., 04/22/2025).\n\nFor CheckBox elements, the value should be a list which contains all the selected values\n\nFor Grid elements, the value should be a valid sub JSON list which contains all the availableOptions as `column` keys and the value to be filled in the `value` key. The Grid elements are a type of table which is why the schema should be consistent to inlude all availableOptions in the `column`.Example: {\n    \"id\": \"sample_id\",\n    \"label\": \"Sample Label\",\n    \"type\": \"Grid\",\n    \"value\": [\n\t\t# Row 1\n        {\n            \"column1\": \"sample value\",\n            \"column2\": \"sample value\"\n        },\n\t\t# Row 2\n        {\n            \"column1\": \"sample value\",\n            \"column2\": \"sample value\"\n        }\n    ],\n    \"availableOptions\": [\n        \"column1\",\n        \"column2\"\n    ]\n}";
+      return "Based on the provided content, please help and complete this JSON provided in the same format without returning availableOptions field.\nReturn only a JSON with unescaped characters so that it can be easily parsed.\nToday's date is " + currentDate + "\n\nThe Form JSON you have to fill is:\n" + formElements + "\n\nIMPORTANT: For any DatePicker fields, ensure dates are formatted as MM/dd/yyyy (e.g., 04/22/2025).\n\nFor CheckBox or SelectBox elements, the value should be one of the  availableOptions  field\n\nFor Grid element the value should be a valid sub JSON list which contains all the availableOptions as `column` keys and the value to be filled in the `value` key. The Grid elements are a type of table which is why the schema should be consistent to inlude all availableOptions in the `column`.Example: {\n    \"id\": \"sample_id\",\n    \"label\": \"Sample Label\",\n    \"type\": \"Grid\",\n    \"value\": [\n\t\t# Row 1\n        {\n            \"column1\": \"sample value\",\n            \"column2\": \"sample value\"\n        },\n\t\t# Row 2\n        {\n            \"column1\": \"sample value\",\n            \"column2\": \"sample value\"\n        }\n    ],\n    \"availableOptions\": [\n        \"column1\",\n        \"column2\"\n    ]\n}";
    }
 
    public void webService(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -317,11 +317,14 @@ public class ContextFormFillElement extends Element implements FormBuilderPalett
       Gson gson = new Gson();
       String requestBody = gson.toJson(chat);
 
+      LogUtil.info(getClass().getName(),"Request Body: "+requestBody);
+
       try {
          StringEntity params = new StringEntity(requestBody);
          postRequest.setEntity(params);
          HttpResponse response = httpClient.execute(postRequest);
          String responseBody = EntityUtils.toString(response.getEntity());
+         LogUtil.info(getClass().getName(),"GPT Raw response: "+responseBody);
          Result result;
          String gptOutput;
          if (response.getStatusLine().getStatusCode() == 200) {
@@ -335,6 +338,7 @@ public class ContextFormFillElement extends Element implements FormBuilderPalett
             Object jsonObject = gsonBuilder.fromJson(gptOutput, Object.class);
             String formattedJson = gsonBuilder.toJson(jsonObject);
             result.setContent(formattedJson);
+            LogUtil.info(getClass().getName(),"GPT Output (200): "+gptOutput.toString());
             return result;
          }
 
@@ -343,7 +347,9 @@ public class ContextFormFillElement extends Element implements FormBuilderPalett
          result.setCode(response.getStatusLine().getStatusCode());
          gptOutput = cger.getError().getMessage();
          result.setContent(gptOutput);
+         LogUtil.info(getClass().getName(),"GPT Output (error): "+gptOutput.toString());
          return result;
+
       } catch (IOException var20) {
          LogUtil.error(this.getClassName(), var20, "Error calling ChatGPT API");
       } catch (JsonSyntaxException var21) {
