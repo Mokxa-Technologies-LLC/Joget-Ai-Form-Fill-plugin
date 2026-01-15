@@ -857,6 +857,8 @@ moveIndicatorTo($(".segmented-btn.active"));
 <!-- script for Speech Recognization -->
 <script>
 (function () {
+let lastFinalIndex = -1;
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const SpeechRecognition =
 window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -869,10 +871,11 @@ return;
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";   // change to hi-IN if needed
     recognition.interimResults = true;
-    recognition.continuous = true;
+    recognition.continuous = !isMobile; //  mobile-safe
 
     let listening = false;
     let finalText = "";
+
 
     const $micBtn = $("#micBtn");
     const $micIcon = $("#micIcon");
@@ -880,6 +883,7 @@ return;
 
     $micBtn.on("click", function () {
 if (!listening) {
+lastFinalIndex = -1;
 finalText = $textarea.val().trim();
 if (finalText) finalText += " ";
 
@@ -902,23 +906,54 @@ $micIcon
 }
     });
 
+    // recognition.onresult = function (event) {
+//     let interim = "";
+
+//     for (let i = event.resultIndex; i < event.results.length; i++) {
+//         const text = event.results[i][0].transcript;
+//         if (event.results[i].isFinal) {
+//             finalText += text + " ";
+//         } else {
+//             interim += text;
+//         }
+    //     }
+
+    //     $textarea.val(finalText + interim);
+    // };
+
     recognition.onresult = function (event) {
 let interim = "";
 
 for (let i = event.resultIndex; i < event.results.length; i++) {
-const text = event.results[i][0].transcript;
-if (event.results[i].isFinal) {
+const result = event.results[i];
+const text = result[0].transcript.trim();
+
+if (result.isFinal) {
+// 🔹 Prevent duplicate final results (mobile fix)
+if (i > lastFinalIndex) {
 finalText += text + " ";
-} else {
-interim += text;
+lastFinalIndex = i;
+}
+            } else {
+interim += text + " ";
 }
         }
 
         $textarea.val(finalText + interim);
     };
 
+
+    // recognition.onend = function () {
+//     if (listening) recognition.start(); // YouTube-style auto resume
+// };
+
     recognition.onend = function () {
-if (listening) recognition.start(); // YouTube-style auto resume
+listening = false;
+
+$micBtn.removeClass("listening");
+$micIcon
+.removeClass("fa-microphone")
+.addClass("fa-microphone-slash");
 };
 
     recognition.onerror = function (e) {
